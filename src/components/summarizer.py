@@ -1,85 +1,76 @@
 # src/components/summarizer.py
 
 from transformers import T5ForConditionalGeneration, T5Tokenizer
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from .pdf_processor import extract_text_from_pdf  # Import our PDF extractor
 import torch
 
-def summarize_text(text: str, model_name: str = "t5-small") -> str:
+# --- This is the local T5 summarization function from before ---
+def _summarize_chunk(text: str, model, tokenizer) -> str:
+    """Helper function to summarize a single chunk of text."""
+    input_text = "summarize: " + text
+    inputs = tokenizer.encode(
+        input_text, 
+        return_tensors="pt",
+        max_length=512,  # T5's max input
+        truncation=True
+    )
+    
+    summary_ids = model.generate(
+        inputs, 
+        max_length=150,
+        min_length=30,
+        num_beams=4,
+        early_stopping=True
+    )
+    
+    return tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+
+# --- This is our new "smart" function that does the MapReduce ---
+def summarize_pdf_locally(pdf_path: str, model_name: str = "t5-small") -> str:
     """
-    Generates a summary for a given text using a T5 model.
-
-    Args:
-        text (str): The input text to summarize.
-        model_name (str): The name of the T5 model to use from Hugging Face Hub. 
-                          Defaults to "t5-small".
-
-    Returns:
-        str: The generated summary.
+    Extracts text from a PDF, chunks it, summarizes each chunk,
+    and then summarizes the combined summaries. (MapReduce)
     """
     try:
-        # 1. Load the tokenizer and model from Hugging Face
-        print(f"Loading model: {model_name}...")
+        # 1. Load the T5 model and tokenizer (locally)
+        print(f"Loading local model: {model_name}...")
         tokenizer = T5Tokenizer.from_pretrained(model_name)
         model = T5ForConditionalGeneration.from_pretrained(model_name)
-        print("Model loaded successfully.")
+        print("Model loaded.")
 
-        # 2. Pre-process the text: T5 requires a prefix for summarization
-        # We also need to add a check for text length, as T5 has a token limit.
-        # We'll truncate to a safe number of tokens if necessary.
-        input_text = "summarize: " + text
-        
-        # Tokenize the input text
-        inputs = tokenizer.encode(
-            input_text, 
-            return_tensors="pt",       # Return PyTorch tensors
-            max_length=512,            # Truncate to a max of 512 tokens
-            truncation=True
+        # 2. Extract text from the PDF
+        print(f"Extracting text from {pdf_path}...")
+        full_text = extract_text_from_pdf(pdf_path)
+        if not full_text:
+            return "Error: Could not extract text from PDF."
+        print(f"Extracted {len(full_text)} characters.")
+
+        # 3. Create a text splitter
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,  # Split the text into 1000-char chunks
+            chunk_overlap=100 # Add 100-char overlap
         )
+        chunks = text_splitter.split_text(full_text)
+        print(f"Split text into {len(chunks)} chunks.")
 
-        # 3. Generate the summary
-        print("Generating summary...")
-        summary_ids = model.generate(
-            inputs, 
-            max_length=150,      # Maximum length of the summary
-            min_length=40,       # Minimum length of the summary
-            length_penalty=2.0,  # Penalizes longer summaries to keep them concise
-            num_beams=4,         # Use beam search for better quality results
-            early_stopping=True
-        )
-
-        # 4. Decode the generated summary IDs back to a string
-        summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
-        print("Summary generated.")
+        # 4. MAP step: Summarize each chunk
+        chunk_summaries = []
+        print("Summarizing chunks (Map step)...")
+        for i, chunk in enumerate(chunks):
+            summary = _summarize_chunk(chunk, model, tokenizer)
+            chunk_summaries.append(summary)
+            print(f"  Summarized chunk {i+1}/{len(chunks)}")
         
-        return summary
+        # 5. REDUCE step: Combine and do a final summary
+        print("Combining summaries (Reduce step)...")
+        combined_summaries = "\n".join(chunk_summaries)
+        
+        final_summary = _summarize_chunk(combined_summaries, model, tokenizer)
+        
+        print("Local summarization complete.")
+        return final_summary
 
     except Exception as e:
-        print(f"An error occurred during summarization: {e}")
-        return ""
-
-# --- Example of how to test this file directly ---
-if __name__ == '__main__':
-    # This block runs only when you execute `python summarizer.py`
-    
-    sample_text = """
-    Artificial intelligence (AI) is intelligence demonstrated by machines, 
-    as opposed to the natural intelligence displayed by animals and humans. 
-    AI research has been defined as the field of study of intelligent agents, 
-    which refers to any system that perceives its environment and takes actions 
-    that maximize its chance of successfully achieving its goals. The term 
-    "artificial intelligence" had previously been used to describe machines 
-    that mimic and display "human" cognitive skills that are associated with 
-    the human mind, such as "learning" and "problem-solving". This definition 
-    has since been rejected by major AI researchers who now describe AI in 
-    terms of rationality and acting rationally, which does not limit AI to 
-    human-like intelligence.
-    """
-    
-    print("--- Testing T5 Summarizer ---")
-    print(f"\nOriginal Text:\n{sample_text}")
-    
-    generated_summary = summarize_text(sample_text)
-    
-    if generated_summary:
-        print(f"\n✅ Generated Summary:\n{generated_summary}")
-    else:
-        print("\n❌ Summary generation failed.")
+        print(f"An error occurred during local summarization: {e}")
+        return f"Error processing PDF: {e}"
