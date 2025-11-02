@@ -1,0 +1,24 @@
+# Core Web App
+streamlit
+
+# LangChain Agent & Framework
+langchain>=0.3.7
+langchain-community
+langgraph
+
+# LLM Providers
+langchain-groq
+langchain-google-genai
+
+# Local Model (T5)
+transformers>=4.45.2
+torch>=2.6.0
+sentencepiece
+
+# Tools
+pymupdf
+tavily-python
+
+# Utility
+python-dotenv
+numpy>=2.2.5
