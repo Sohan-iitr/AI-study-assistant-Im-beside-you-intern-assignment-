@@ -4,12 +4,8 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from .pdf_processor import extract_text_from_pdf
 import torch
 
-# ------------------------------
-# ✅ Correct model path setup
-# ------------------------------
-# Use model folder under "models", not "model"
+
 MODEL_DIR = os.path.join("model")
-# Get absolute path safely (no spaces, normalized)
 MODEL_PATH = os.path.abspath(MODEL_DIR)
 print("✅ Local model path:", MODEL_PATH)
 # ------------------------------
@@ -94,6 +90,10 @@ if __name__ == '__main__':
     print("   streamlit run src/app.py")
 
 
+
+
+
+# this is for pretrained t5 small use instead of finetuned one
 # # src/components/summarizer.py
 # import os
 # from dotenv import load_dotenv

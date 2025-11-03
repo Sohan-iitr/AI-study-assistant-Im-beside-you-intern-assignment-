@@ -7,3 +7,4 @@ venv/
 # Cache / temporary files
 __pycache__/
 *.pyc
+model/*.safetensors

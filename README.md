@@ -34,7 +34,7 @@ User Upload (PDF)
 ↓
 PDF Text Extractor (PyMuPDF)
 ↓
-RAG Tool (DuckDuckGo / Tavily search)
+RAG Tool (Tavily search)
 ↓
 Fine-tuned T5-small Model
 ↓

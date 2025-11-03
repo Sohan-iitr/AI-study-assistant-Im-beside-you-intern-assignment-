@@ -26,7 +26,6 @@ def generate_questions(summary_text: str) -> List[str]:
             "Questions:"
         )
 
-        # CORRECTED LINE: Use the new, supported model name
         model = ChatGroq(model="llama-3.1-8b-instant", temperature=0.4)
 
         chain = prompt | model | StrOutputParser()
@@ -43,7 +42,6 @@ def generate_questions(summary_text: str) -> List[str]:
         print(f"An error occurred during question generation: {e}")
         return []
 
-# --- The test block remains the same ---
 if __name__ == '__main__':
     sample_summary = (
         "Artificial intelligence (AI) is intelligence demonstrated by machines, "
