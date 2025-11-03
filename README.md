@@ -1,3 +1,8 @@
+### Name: Sohan Awate
+### College: IIT Roorkee
+### Branch: Production and Industrial Engineering
+
+
 # 🧠 AI Study Assistant — Automated Note Summarizer & Q&A Generator
 
 ## 📘 Overview
@@ -18,15 +23,13 @@ Users can upload lecture notes or textbook PDFs, and the system will:
 |------------|-----------------|
 | Frontend/UI | Streamlit |
 | Agent Framework | LangChain |
-| Retrieval / RAG Tool | DuckDuckGo / Tavily API (via LangChain) |
+| Retrieval / RAG Tool | Tavily API (via LangChain) |
 | Model | Fine-tuned **T5-small** (≈60M parameters) |
 | Libraries | Transformers, Datasets, PEFT, PyMuPDF, Rouge-score |
 | Environment | Python 3.10+, VS Code / Google Colab |
 | Version Control | Git + GitHub |
 
 ---
-link for finetuned model download https://drive.google.com/drive/folders/16eeG99XW7YczgfSDXJTOSVWlcdco_DFB?usp=sharing
-
 
 ## 🧩 System Architecture
 
@@ -42,4 +45,32 @@ Q&A Generator
 ↓
 Streamlit Display (Summary + Viva Questions)
 
-youtube video link: 
+
+📊 **Architecture & Training Resources:**  
+All model files, training notebooks, and reports are available here:  
+🔗 [Google Drive Folder — Models, Training Code & Documents](https://drive.google.com/drive/folders/16eeG99XW7YczgfSDXJTOSVWlcdco_DFB?usp=sharing)
+
+---
+
+## 🎯 Key Features
+- 📝 **Automated Summarization:** Extracts and condenses lengthy academic PDFs.  
+- 🔍 **Web Verification (Optional):** Uses Tavily API for real-time fact updates.  
+- ❓ **Question Generation:** Creates study/viva-style questions via Groq API.  
+- ⚙️ **Agentic Architecture:** Modular LangChain workflow with defined tools.  
+- 💻 **Interactive UI:** Streamlit-based interface for smooth user experience.  
+
+---
+
+## 🚀 How to Run the Project
+
+```bash
+# 1️⃣ Clone the repository
+git clone https://github.com/Sohan-iitr/AI-study-assistant-Im-beside-you-intern-assignment-.git
+cd AI-study-assistant
+
+# 2️⃣ Install dependencies
+pip install -r requirements.txt
+
+# 3️⃣ Run the Streamlit application
+streamlit run src/app.py
+
